@@ -16,6 +16,14 @@
 
 #define MAXBUFLEN 100
 
+struct packet {
+	unsigned int total_frag;
+	unsigned int frag_no;
+	unsigned int size;
+	char* filename;
+	char filedata[1000];
+}; 
+
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
 {

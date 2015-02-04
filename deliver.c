@@ -11,21 +11,23 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+
 #define SERVERPORT "4950" // the port users will be connecting to
+
 int main(int argc, char *argv[])
 {
 	int sockfd;
 	struct addrinfo hints, *servinfo, *p;
 	int rv;
 	int numbytes;
-	if (argc != 3) {
-		fprintf(stderr,"usage: talker hostname message\n");
+	if (argc != 6) {
+		fprintf(stderr,"usage: deliver <server address> <server port number> <client listenport> <file name> \n");
 		exit(1);
 	}
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_DGRAM;
-	if ((rv = getaddrinfo(argv[1], SERVERPORT, &hints, &servinfo)) != 0) {
+	if ((rv = getaddrinfo(argv[1], argv[2], &hints, &servinfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return 1;
 	}
