@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 	struct addrinfo hints, *servinfo, *p;
 	int rv;
 	int numbytes;
-	if (argc != 6) {
+	if (argc != 5) { 
 		fprintf(stderr,"usage: deliver <server address> <server port number> <client listenport> <file name> \n");
 		exit(1);
 	}
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "talker: failed to bind socket\n");
 		return 2;
 	}
-	if ((numbytes = sendto(sockfd, argv[2], strlen(argv[2]), 0, p->ai_addr, p->ai_addrlen)) == -1) {
+	if ((numbytes = sendto(sockfd, argv[4], strlen(argv[4]), 0, p->ai_addr, p->ai_addrlen)) == -1) {
 		perror("talker: sendto");
 		exit(1);
 	}
