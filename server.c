@@ -54,7 +54,8 @@ int main(void)
 			perror("listener: bind");
 			continue;
 		}
-			break;
+		
+		break;
 	}
 	if (p == NULL) {
 		fprintf(stderr, "listener: failed to bind socket\n");
