@@ -128,12 +128,11 @@ int main(int argc, char **argv)
 	{
 		//while(packet_index = 1){
 		//Read from the file into our send buffer
-		read_size = fread(send_buffer, 1, sizeof(send_buffer)-1, file);
+		read_size = fread(sendPack.filename, 1, sizeof(send_buffer)-1, file);
 
 		
 		sendPack.frag_no = packet_index;
 		sendPack.size = read_size;
-		strcpy(sendPack.filedata, send_buffer);
 
 		// printf("Packet Number: %i\n",packet_index);
 		// printf("Packet Size Sent: %i\n",read_size);     

@@ -7,11 +7,22 @@
 #define SERVER_UDP_PORT 5000	// well-known port
 #define MAXLEN 4096				// maximum data length
 
+typedef struct packet {
+	unsigned int total_frag;
+	unsigned int frag_no;
+	unsigned int size;
+	char filename[100];
+	char filedata[1000];
+}packet;
+
 int main(int argc, char **argv)
 {
-	int sd, client_len, port, n;
+	int sd, client_len, port, n, firstPacket;
 	char buf[MAXLEN];
+	char** fileInfo;
 	struct sockaddr_in server, client;
+
+	firstPacket = 1;
 
 	char buf_ACK[MAXLEN] = "ACK\n";
 
@@ -49,6 +60,8 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
+	packet sendPack;
+
 	while(1)
 	{
 		client_len = sizeof(client);
@@ -59,9 +72,20 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			printf("server: received client request = %s\n", buf);
+			printf("%s\n", buf);
+			//sscanf(buf, "%d:%d:%d:%s:%s", sendPack.total_frag,sendPack.frag_no, sendPack.size, sendPack.filename, sendPack.filedata);
+			//printf("server: received client request = %d:%d:%d:%s:%s\n", sendPack.total_frag,sendPack.frag_no, sendPack.size, sendPack.filename, sendPack.filedata);
 		}
 
+
+		// if(firstPacket){
+		// 	packet sendPack;
+		// 	sscanf(buf, "%d:%d:%d:%s:%s", sendPack.total_frag,sendPack.frag_no, sendPack.size, sendPack.filename, sendPack.filedata);
+
+		// }
+		// else{
+
+		// }
 
 
 		if(sendto(sd, buf, n, 0, (struct sockaddr *)&client, client_len) != n)
