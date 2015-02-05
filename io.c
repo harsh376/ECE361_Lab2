@@ -27,12 +27,12 @@ int main () {
 
 	printf("Total image size: %i\n",imageSize);
 
-	total_frag = ceil((float)(imageSize/MAX_FRAGMENT_SIZE));
+	total_frag = ceil((float)imageSize/MAX_FRAGMENT_SIZE);
 
-	// printf("Total number of fragments = %i\n", total_frag);
+	printf("Total number of fragments = %i\n", total_frag);
 
 
-
+	
 	while(!feof(image)) 
 	{
 		//while(packet_index = 1){
@@ -58,7 +58,6 @@ int main () {
 		//Zero out our send buffer
 		bzero(send_buffer, sizeof(send_buffer));
 	}
-
-
+	
 	return 0;
 }
