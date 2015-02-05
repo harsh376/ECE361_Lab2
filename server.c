@@ -1,95 +1,79 @@
-/*
-** listener.c -- a datagram sockets "server" demo
-*/
+/* Echo server using UDP */
 #include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
 
-#define MYPORT "4950" // the port users will be connecting to
+#define SERVER_UDP_PORT 5000	// well-known port
+#define MAXLEN 4096				// maximum data length
 
-#define MAXBUFLEN 100
-
-struct packet {
-	unsigned int total_frag;
-	unsigned int frag_no;
-	unsigned int size;
-	char* filename;
-	char filedata[1000];
-}; 
-
-// get sockaddr, IPv4 or IPv6:
-void *get_in_addr(struct sockaddr *sa)
+int main(int argc, char **argv)
 {
-	if (sa->sa_family == AF_INET) {
-		return &(((struct sockaddr_in*)sa)->sin_addr);
+	int sd, client_len, port, n;
+	char buf[MAXLEN];
+	struct sockaddr_in server, client;
+
+	char buf_ACK[MAXLEN] = "ACK\n";
+
+	switch(argc)
+	{
+		case 1:
+			port = SERVER_UDP_PORT;
+			break;
+
+		case 2:
+			port = atoi(argv[1]);
+			break;
+
+		default:
+			fprintf(stderr, "Usage: %s [port]\n", argv[0]);
+			exit(1);
 	}
-	return &(((struct sockaddr_in6*)sa)->sin6_addr);
-}
-int main(int argc, char *argv[])
-{
-	int sockfd;
-	struct addrinfo hints, *servinfo, *p;
-	int rv;
-	int numbytes;
-	struct sockaddr_storage their_addr;
-	char buf[MAXBUFLEN];
-	size_t addr_len;
-	char s[INET6_ADDRSTRLEN];
-	memset(&hints, 0, sizeof hints);
-	hints.ai_family = AF_UNSPEC; // set to AF_INET to force IPv4
-	hints.ai_socktype = SOCK_DGRAM;
-	hints.ai_flags = AI_PASSIVE; // use my IP
 
-	if (argc != 2) { 
-		fprintf(stderr,"usage: server <UDP listen port> \n");
+	// Create a Datagram Socket
+	if((sd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+	{
+		fprintf(stderr, "Can't create a socket\n");
 		exit(1);
 	}
 
-	if ((rv = getaddrinfo(NULL, MYPORT, &hints, &servinfo)) != 0) {
-		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-		return 1;
-	}
-	// loop through all the results and bind to the first we can
-	for(p = servinfo; p != NULL; p = p->ai_next) {
-		
-		if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
-			perror("listener: socket");
-			continue;
-		}
-		if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-			close(sockfd);
-			perror("listener: bind");
-			continue;
-		}
-		
-		break;
-	}
-	if (p == NULL) {
-		fprintf(stderr, "listener: failed to bind socket\n");
-		return 2;
-	}
-		freeaddrinfo(servinfo);
-		printf("listener: waiting to recvfrom...\n");
-		addr_len = sizeof their_addr;
-	if ((numbytes = recvfrom(sockfd, buf, MAXBUFLEN-1 , 0, (struct sockaddr *)&their_addr, &addr_len)) == -1) {
-		perror("recvfrom");
+	// Bind an address to the socket
+	bzero((char *)&server, sizeof(server));
+	server.sin_family = AF_INET;
+	server.sin_port = htons(port);
+	server.sin_addr.s_addr = htonl(INADDR_ANY);
+
+	if(bind(sd, (struct sockaddr *)&server, sizeof(server)) == -1)
+	{
+		fprintf(stderr, "Can't bind name to socket\n");
 		exit(1);
 	}
 
-	printf("listener: got packet from %s\n",
-	inet_ntop(their_addr.ss_family,
-	get_in_addr((struct sockaddr *)&their_addr),
-	s, sizeof s));
-	printf("listener: packet is %d bytes long\n", numbytes);
-	buf[numbytes] = '\0';
-	printf("listener: packet contains \"%s\"\n", buf);
-	close(sockfd);
+	while(1)
+	{
+		client_len = sizeof(client);
+		if((n = recvfrom(sd, buf, MAXLEN, 0, (struct sockaddr *)&client, &client_len)) < 0)
+		{
+			fprintf(stderr, "Can't receive datagram\n");
+			exit(1);
+		}
+		else
+		{
+			printf("server: received client request = %s\n", buf);
+		}
+
+
+
+		if(sendto(sd, buf, n, 0, (struct sockaddr *)&client, client_len) != n)
+		// if(sendto(sd, buf_ACK, sizeof(buf_ACK), 0, (struct sockaddr *)&client, client_len) != sizeof(buf_ACK))
+		{
+			fprintf(stderr, "Can't send datagram\n");
+			exit(1);
+		}
+	}
+
+	close(sd);
 	return 0;
+
 }
+
