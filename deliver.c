@@ -24,6 +24,8 @@ int main(int argc, char **argv)
 	struct sockaddr_in server, client;
 	struct timeval start, end;
 
+	int port_client;
+
 	/*
 	deliver <server address> <server port number> <client listen port> <file name> 
 	*/
@@ -37,6 +39,8 @@ int main(int argc, char **argv)
 
 	host = argv[1];
 	port = atoi(argv[2]);
+	port_client = atoi(argv[3]);
+
 
 	/* Opening the file to be sent */
 	FILE *file = fopen("hello.txt", "r");
@@ -75,7 +79,7 @@ int main(int argc, char **argv)
 	/* Bind local address to the socket */
 	bzero((char *)&client, sizeof(client)); 
 	client.sin_family = AF_INET;
-	client.sin_port = htons(0);
+	client.sin_port = htons(port_client);
 	client.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	if (bind(sd, (struct sockaddr *)&client, sizeof(client)) == -1) 
