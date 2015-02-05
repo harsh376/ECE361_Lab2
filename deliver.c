@@ -7,19 +7,28 @@
 #include <sys/types.h> 
 #include <sys/socket.h> 
 #include <netinet/in.h>
+#include <math.h>
 #define SERVER_UDP_PORT 5000 
-#define MAXLEN 4096 	/* maximum data length */
+#define MAX_FRAGMENT_SIZE 1000 	/* maximum data length */
 #define DEFLEN 64		/* default length */
 
+typedef struct packet {
+	unsigned int total_frag;
+	unsigned int frag_no;
+	unsigned int size;
+	char filename[100];
+	char filedata[1000];
+}packet;
  
 long delay(struct timeval t1, struct timeval t2);
 
 int main(int argc, char **argv)
 {
 
+	char packetString[MAX_FRAGMENT_SIZE+500];
 	int data_size = DEFLEN, port = SERVER_UDP_PORT;
 	int i, j, sd, server_len;
-	char *pname, *host, rbuf[MAXLEN], sbuf[MAXLEN];
+	char *pname, *host, rbuf[MAX_FRAGMENT_SIZE], sbuf[MAX_FRAGMENT_SIZE];
 	struct hostent *hp;
 	struct sockaddr_in server, client;
 	struct timeval start, end;
@@ -40,16 +49,42 @@ int main(int argc, char **argv)
 	host = argv[1];
 	port = atoi(argv[2]);
 	port_client = atoi(argv[3]);
+	
 
 
 	/* Opening the file to be sent */
-	FILE *file = fopen("hello.txt", "r");
+	FILE *file = fopen(argv[4], "r");
 
 	if(file == NULL)
 	{
 		fprintf(stderr, "Couldn't open file\n");
 		exit(1);
 	}
+
+	int fileSize, read_size, stat, packet_index, total_frag;
+	char send_buffer[MAX_FRAGMENT_SIZE], read_buffer[256];
+	
+	packet_index = 1;
+
+	if(file == NULL) 
+	{
+		printf("Error Opening File\n"); 
+	} 
+
+	fseek(file, 0, SEEK_END);
+	fileSize = ftell(file);
+	fseek(file, 0, SEEK_SET);
+
+	printf("Total image size: %i\n",fileSize);
+
+	packet sendPack;
+
+	total_frag = ceil((float)fileSize/MAX_FRAGMENT_SIZE);
+
+	sendPack.total_frag = total_frag;
+	strcpy(sendPack.filename, argv[4]);
+
+	printf("Total number of fragments = %i\n", total_frag);
 
 
 	/* Create a datagram socket */
@@ -58,7 +93,6 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Can't create a socket\n");
 		exit(1); 
 	}
-
 
 
 	/* Store server's information */ 
@@ -88,51 +122,68 @@ int main(int argc, char **argv)
 		exit(1); 
 	}
 
-	if (data_size > MAXLEN) 
-	{
-		fprintf(stderr, "Data is too big\n");
-		exit(1); 
-	}
+	
 
-	/* data is a, b, c, ..., z, a, b, ... */ 
-	for (i = 0; i < data_size; i++) 
+	while(!feof(file)) 
 	{
-		j = (i < 26) ? i : i % 26;
-		sbuf[i] = "a" + j; 
-	}
+		//while(packet_index = 1){
+		//Read from the file into our send buffer
+		read_size = fread(send_buffer, 1, sizeof(send_buffer)-1, file);
 
+		
+		sendPack.frag_no = packet_index;
+		sendPack.size = read_size;
+		strcpy(sendPack.filedata, send_buffer);
+
+		// printf("Packet Number: %i\n",packet_index);
+		// printf("Packet Size Sent: %i\n",read_size);     
+		// printf(" \n");
+		// printf(" \n");
+
+		//Send data through our socket 
+		
+		sprintf(packetString, "%d:%d:%d:%s:%s", sendPack.total_frag,sendPack.frag_no, sendPack.size, sendPack.filename, sendPack.filedata);
+
+		/* transmit data */
+		server_len = sizeof(server);
+		
+		if (sendto(sd, packetString, sizeof(packetString), 0, (struct sockaddr *) &server, server_len) == -1) 
+		{ 
+			fprintf(stderr, "sendto error\n");
+			exit(1);
+		}
+
+		/* receive data */
+		if (recvfrom(sd, rbuf, MAX_FRAGMENT_SIZE, 0, (struct sockaddr *) &server, &server_len) < 0) 
+		{ 
+			fprintf(stderr, "recvfrom error\n"); 
+			exit(1);
+		}  
+
+		if (strncmp(send_buffer, rbuf, data_size) != 0) 
+		{
+			printf("Data is corrupted\n");
+		}
+		else
+		{
+			printf("ACK received\n");
+		}
+
+		packet_index++;  
+
+		//Zero out our send buffer
+		bzero(send_buffer, sizeof(send_buffer));
+	}
+	
 
 
 	gettimeofday(&start, NULL); /* start delay measure */
-	
-	/* transmit data */
-	server_len = sizeof(server);
-	
-	if (sendto(sd, sbuf, data_size, 0, (struct sockaddr *) &server, server_len) == -1) 
-	{ 
-		fprintf(stderr, "sendto error\n");
-		exit(1);
-	}
-
-	/* receive data */
-	if (recvfrom(sd, rbuf, MAXLEN, 0, (struct sockaddr *) &server, &server_len) < 0) 
-	{ 
-		fprintf(stderr, "recvfrom error\n"); 
-		exit(1);
-	}
 
 	gettimeofday(&end, NULL); /* end delay measure */
 
 	printf ("Round-trip delay = %ld ms.\n", delay(start, end));
 
-	if (strncmp(sbuf, rbuf, data_size) != 0) 
-	{
-		printf("Data is corrupted\n");
-	}
-	else
-	{
-		printf("ACK received\n");
-	}
+	
 
 	// printf("client: buffer received = %s\n", rbuf);
 

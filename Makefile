@@ -6,8 +6,8 @@ TARGETS = server deliver
 SRCS = server.c deliver.c
 
 # Compile flags.
-CFLAGS = -g -Wall
-LDFLAGS = -g -Wall 
+CFLAGS = -g -Wall -lm
+LDFLAGS = -g -Wall -lm
 
 # Dependencies file
 DEPEND_FILE = depend.mk
