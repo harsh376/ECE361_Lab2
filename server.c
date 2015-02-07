@@ -1,8 +1,10 @@
 /* Echo server using UDP */
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <string.h>
 
 #define SERVER_UDP_PORT 5000	// well-known port
 #define MAXLEN 4096				// maximum data length
@@ -73,22 +75,15 @@ int main(int argc, char **argv)
 		else
 		{
 			printf("%s\n", buf);
-			//sscanf(buf, "%d:%d:%d:%s:%s", sendPack.total_frag,sendPack.frag_no, sendPack.size, sendPack.filename, sendPack.filedata);
-			//printf("server: received client request = %d:%d:%d:%s:%s\n", sendPack.total_frag,sendPack.frag_no, sendPack.size, sendPack.filename, sendPack.filedata);
+
 		}
 
+		char bytes1[20];
+	    // itoa(n, bytes1, 10);
 
-		// if(firstPacket){
-		// 	packet sendPack;
-		// 	sscanf(buf, "%d:%d:%d:%s:%s", sendPack.total_frag,sendPack.frag_no, sendPack.size, sendPack.filename, sendPack.filedata);
+		snprintf(bytes1, 20,"%d",n);
 
-		// }
-		// else{
-
-		// }
-
-
-		if(sendto(sd, buf, n, 0, (struct sockaddr *)&client, client_len) != n)
+		if(sendto(sd, bytes1, sizeof(bytes1), 0, (struct sockaddr *)&client, client_len) != sizeof(bytes1))
 		// if(sendto(sd, buf_ACK, sizeof(buf_ACK), 0, (struct sockaddr *)&client, client_len) != sizeof(buf_ACK))
 		{
 			fprintf(stderr, "Can't send datagram\n");

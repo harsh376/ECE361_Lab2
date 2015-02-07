@@ -1,6 +1,7 @@
 /* A simple UDP client which measures round trip delay */ 
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
 #include <netdb.h> 
@@ -28,7 +29,7 @@ int main(int argc, char **argv)
 	char packetString[MAX_FRAGMENT_SIZE+500];
 	int data_size = DEFLEN, port = SERVER_UDP_PORT;
 	int i, j, sd, server_len;
-	char *pname, *host, rbuf[MAX_FRAGMENT_SIZE], sbuf[MAX_FRAGMENT_SIZE];
+	char *pname, *host, rbuf[MAX_FRAGMENT_SIZE+500], sbuf[MAX_FRAGMENT_SIZE];
 	struct hostent *hp;
 	struct sockaddr_in server, client;
 	struct timeval start, end;
@@ -81,8 +82,6 @@ int main(int argc, char **argv)
 
 	total_frag = ceil((float)fileSize/MAX_FRAGMENT_SIZE);
 
-	sendPack.total_frag = total_frag;
-	strcpy(sendPack.filename, argv[4]);
 
 	printf("Total number of fragments = %i\n", total_frag);
 
@@ -113,7 +112,7 @@ int main(int argc, char **argv)
 	/* Bind local address to the socket */
 	bzero((char *)&client, sizeof(client)); 
 	client.sin_family = AF_INET;
-	client.sin_port = htons(port_client);
+	client.sin_port = htons(0);
 	client.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	if (bind(sd, (struct sockaddr *)&client, sizeof(client)) == -1) 
@@ -123,14 +122,17 @@ int main(int argc, char **argv)
 	}
 
 	
+	strcpy(sendPack.filename, argv[4]);		
+		
 
 	while(!feof(file)) 
 	{
 		//while(packet_index = 1){
 		//Read from the file into our send buffer
-		read_size = fread(sendPack.filename, 1, sizeof(send_buffer)-1, file);
+		read_size = fread(sendPack.filedata, 1, sizeof(send_buffer)-1, file);
 
-		
+
+		sendPack.total_frag = total_frag;
 		sendPack.frag_no = packet_index;
 		sendPack.size = read_size;
 
@@ -145,8 +147,10 @@ int main(int argc, char **argv)
 
 		/* transmit data */
 		server_len = sizeof(server);
+
+		int bytes_sent;
 		
-		if (sendto(sd, packetString, sizeof(packetString), 0, (struct sockaddr *) &server, server_len) == -1) 
+		if ((bytes_sent = sendto(sd, packetString, sizeof(packetString), 0, (struct sockaddr *) &server, server_len)) == -1) 
 		{ 
 			fprintf(stderr, "sendto error\n");
 			exit(1);
@@ -159,13 +163,15 @@ int main(int argc, char **argv)
 			exit(1);
 		}  
 
-		if (strncmp(send_buffer, rbuf, data_size) != 0) 
+		int bytes_received_by_server = atoi(rbuf);
+
+		if(bytes_sent == bytes_received_by_server)
 		{
-			printf("Data is corrupted\n");
+			printf("ACK received\n");
 		}
 		else
 		{
-			printf("ACK received\n");
+			printf("Data corrupt!\n");
 		}
 
 		packet_index++;  
