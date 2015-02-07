@@ -153,9 +153,18 @@ int main(int argc, char **argv)
 		
 		// memcpy(bufferMemory+sizeof(strlen(packetString)+1), sendPack.filedata, sizeof(sendPack.filedata));
 
-		char bufferMemory[1000];
+		// --- char bufferMemory[1000];
+		char header[200];
 
-		memcpy(bufferMemory, sendPack.filedata, 1000);
+		sprintf(header, "%d:%d:%d:%s:", sendPack.total_frag, sendPack.frag_no, sendPack.size, sendPack.filename);
+
+		char bufferMemory[1200];
+
+		memcpy(bufferMemory, header, sizeof(header));
+
+		memcpy(&(bufferMemory[sizeof(header)]), sendPack.filedata, 1000);
+		
+		// --- memcpy(bufferMemory, sendPack.filedata, 1000);
 
 
 		/* transmit data */

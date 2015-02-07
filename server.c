@@ -8,7 +8,8 @@
 
 #define SERVER_UDP_PORT 5000	// well-known port
 // #define MAXLEN 1106				// maximum data length
-#define MAXLEN 1000				// maximum data length
+// -- #define MAXLEN 1000				// maximum data length
+#define MAXLEN 1200				// maximum data length
 
 typedef struct packet {
 	unsigned int total_frag;
@@ -76,21 +77,11 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			// int x = 0;
-			// int ct = 0;
-			// while(ct < 4)
-			// {
-			// 	if(buf[x] == ':')
-			// 		ct++;
-
-			// 	x++;
-			// }
 
 			FILE *fp;
-			// char str[] = "This is tutorialspoint.com";
 
 			fp = fopen( "file.jpg" , "a" );
-			fwrite(buf , 1 , 1000 , fp); //1018
+			fwrite(&(buf[200]) , 1 , 1000 , fp); 
 			
 			fclose(fp);
 	
