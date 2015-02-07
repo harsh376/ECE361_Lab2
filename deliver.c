@@ -143,15 +143,28 @@ int main(int argc, char **argv)
 
 		//Send data through our socket 
 		
-		// sprintf(packetString, "%d:%d:%d:%s:%s", sendPack.total_frag,sendPack.frag_no, sendPack.size, sendPack.filename, sendPack.filedata);
+		// sprintf(packetString, "%d:%d:%d:%s:", sendPack.total_frag,sendPack.frag_no, sendPack.size, sendPack.filename);
+
+		// int bufferMemory_size = sizeof(strlen(packetString)+1)+sizeof(sendPack.filedata);
+
+		// void* bufferMemory = (void*)malloc(bufferMemory_size);
+
+		// memcpy(bufferMemory, packetString, sizeof(strlen(packetString)+1));
+		
+		// memcpy(bufferMemory+sizeof(strlen(packetString)+1), sendPack.filedata, sizeof(sendPack.filedata));
+
+		char bufferMemory[1000];
+
+		memcpy(bufferMemory, sendPack.filedata, 1000);
+
 
 		/* transmit data */
 		server_len = sizeof(server);
 
 		int bytes_sent;
 		
-		// if ((bytes_sent = sendto(sd, packetString, sizeof(packetString), 0, (struct sockaddr *) &server, server_len)) == -1) 
-		if ((bytes_sent = sendto(sd, sendPack.filedata, sizeof(sendPack.filedata), 0, (struct sockaddr *) &server, server_len)) == -1) 
+		if ((bytes_sent = sendto(sd, bufferMemory, sizeof(bufferMemory), 0, (struct sockaddr *) &server, server_len)) == -1) 
+		// if ((bytes_sent = sendto(sd, sendPack.filedata, sizeof(sendPack.filedata), 0, (struct sockaddr *) &server, server_len)) == -1) 
 		{ 
 			fprintf(stderr, "sendto error\n");
 			exit(1);

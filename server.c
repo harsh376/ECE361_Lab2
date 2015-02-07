@@ -76,21 +76,21 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			// char *b = buf;
+			// int x = 0;
 			// int ct = 0;
 			// while(ct < 4)
 			// {
-			// 	if(*b == ':')
+			// 	if(buf[x] == ':')
 			// 		ct++;
 
-			// 	b++;
+			// 	x++;
 			// }
 
 			FILE *fp;
-			char str[] = "This is tutorialspoint.com";
+			// char str[] = "This is tutorialspoint.com";
 
 			fp = fopen( "file.jpg" , "a" );
-			fwrite(buf , 1 , 999 , fp); //1018
+			fwrite(buf , 1 , 1000 , fp); //1018
 			
 			fclose(fp);
 	
