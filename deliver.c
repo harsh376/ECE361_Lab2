@@ -26,10 +26,10 @@ long delay(struct timeval t1, struct timeval t2);
 int main(int argc, char **argv)
 {
 
-	char packetString[MAX_FRAGMENT_SIZE+500];
+	char packetString[1500];
 	int data_size = DEFLEN, port = SERVER_UDP_PORT;
 	int i, j, sd, server_len;
-	char *pname, *host, rbuf[MAX_FRAGMENT_SIZE+500], sbuf[MAX_FRAGMENT_SIZE];
+	char *pname, *host, rbuf[1500], sbuf[MAX_FRAGMENT_SIZE];
 	struct hostent *hp;
 	struct sockaddr_in server, client;
 	struct timeval start, end;
@@ -129,7 +129,7 @@ int main(int argc, char **argv)
 	{
 		//while(packet_index = 1){
 		//Read from the file into our send buffer
-		read_size = fread(sendPack.filedata, 1, sizeof(send_buffer)-1, file);
+		read_size = fread(sendPack.filedata, 1, sizeof(send_buffer), file);
 
 
 		sendPack.total_frag = total_frag;
@@ -143,14 +143,15 @@ int main(int argc, char **argv)
 
 		//Send data through our socket 
 		
-		sprintf(packetString, "%d:%d:%d:%s:%s", sendPack.total_frag,sendPack.frag_no, sendPack.size, sendPack.filename, sendPack.filedata);
+		// sprintf(packetString, "%d:%d:%d:%s:%s", sendPack.total_frag,sendPack.frag_no, sendPack.size, sendPack.filename, sendPack.filedata);
 
 		/* transmit data */
 		server_len = sizeof(server);
 
 		int bytes_sent;
 		
-		if ((bytes_sent = sendto(sd, packetString, sizeof(packetString), 0, (struct sockaddr *) &server, server_len)) == -1) 
+		// if ((bytes_sent = sendto(sd, packetString, sizeof(packetString), 0, (struct sockaddr *) &server, server_len)) == -1) 
+		if ((bytes_sent = sendto(sd, sendPack.filedata, sizeof(sendPack.filedata), 0, (struct sockaddr *) &server, server_len)) == -1) 
 		{ 
 			fprintf(stderr, "sendto error\n");
 			exit(1);

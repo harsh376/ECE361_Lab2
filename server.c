@@ -7,7 +7,8 @@
 #include <string.h>
 
 #define SERVER_UDP_PORT 5000	// well-known port
-#define MAXLEN 4096				// maximum data length
+// #define MAXLEN 1106				// maximum data length
+#define MAXLEN 1000				// maximum data length
 
 typedef struct packet {
 	unsigned int total_frag;
@@ -64,6 +65,7 @@ int main(int argc, char **argv)
 
 	packet sendPack;
 
+
 	while(1)
 	{
 		client_len = sizeof(client);
@@ -74,7 +76,26 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			printf("%s\n", buf);
+			// char *b = buf;
+			// int ct = 0;
+			// while(ct < 4)
+			// {
+			// 	if(*b == ':')
+			// 		ct++;
+
+			// 	b++;
+			// }
+
+			FILE *fp;
+			char str[] = "This is tutorialspoint.com";
+
+			fp = fopen( "file.jpg" , "a" );
+			fwrite(buf , 1 , 999 , fp); //1018
+			
+			fclose(fp);
+	
+
+			// printf("%s\n", b);
 
 		}
 
@@ -84,12 +105,12 @@ int main(int argc, char **argv)
 		snprintf(bytes1, 20,"%d",n);
 
 		if(sendto(sd, bytes1, sizeof(bytes1), 0, (struct sockaddr *)&client, client_len) != sizeof(bytes1))
-		// if(sendto(sd, buf_ACK, sizeof(buf_ACK), 0, (struct sockaddr *)&client, client_len) != sizeof(buf_ACK))
 		{
 			fprintf(stderr, "Can't send datagram\n");
 			exit(1);
 		}
 	}
+
 
 	close(sd);
 	return 0;
